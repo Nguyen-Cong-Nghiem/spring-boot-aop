@@ -1,0 +1,36 @@
+server:
+  port: 9898
+spring:
+  jpa:
+    show-sql: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+    username: postgres
+    password: 123456
+  messages:
+    basename: i18n/messages
+logging:
+  pattern:
+    level: "%X{mdcData}%5p"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+    shutdown:
+      enabled: true
+
+
