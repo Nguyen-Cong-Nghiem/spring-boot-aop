@@ -1,23 +1,28 @@
 package vn.vela.demo.config;
 
 
-
 import java.util.Arrays;
+import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
+@Log4j2
 public class LogAopConfiguration {
+  private final Environment environment;
 
-  private Logger logger = LoggerFactory.getLogger(this.getClass());
+  public LogAopConfiguration(Environment environment) {
+    this.environment = environment;
+  }
 
   private String patternLog(JoinPoint joinPoint) {
     return String.format("%s%s%s%s%s%s%s",joinPoint.getSignature().getName(),
@@ -37,20 +42,32 @@ public class LogAopConfiguration {
 
   @Before(value = "applicationpackagePointcut()")
   public void logBefore(JoinPoint joinPoint) {
-    logger.info(String.format("%s%s","Enter method: ",patternLog(joinPoint)));
+    log.info(String.format("%s%s","Enter method: ",patternLog(joinPoint)));
   }
 
   @AfterReturning("applicationpackagePointcut()")
   public void logAfter(JoinPoint joinPoint) {
-    logger.info(String.format("%s%s","Finish method : ",patternLog(joinPoint)));
+    log.info(String.format("%s%s","Finish method : ",patternLog(joinPoint)));
   }
 
   @AfterThrowing(value = "applicationpackagePointcut()", throwing = "e")
   public void logAfterThrow(JoinPoint joinPoint, Throwable e) {
-    logger.error(String.format("%s%s%s%s%s%s%s%s%s", "Exception in method : ",
-        joinPoint.getSignature().getName(),
-        " at class: ", joinPoint.getSignature().getDeclaringTypeName(),
-        " with cause = ", e.getCause() != null ? e.getCause() : "NULL",
-        " and exception = ", e.getMessage(), e.fillInStackTrace()));
+    log.error(String.format("%s%s%s%s", "Exception in method : ",
+        patternLog(joinPoint),
+        " and exception = ", Arrays.toString(e.getStackTrace())));
+  }
+
+  @Around(value = "applicationpackagePointcut()")
+  public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
+      log.debug(String.format("%s%s","Enter method: ",patternLog(joinPoint)));
+    try {
+      Object result = joinPoint.proceed();
+        log.debug(String.format("%s%s","Finish method : ",patternLog(joinPoint)));
+      return result;
+    } catch (IllegalArgumentException e) {
+      log.error("Illegal argument: {} in {}.{}()", Arrays.toString(joinPoint.getArgs()),
+          joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName());
+      throw e;
+    }
   }
 }
