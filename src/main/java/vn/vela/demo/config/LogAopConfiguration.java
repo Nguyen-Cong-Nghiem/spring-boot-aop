@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Log4j2
 public class LogAopConfiguration {
+
   private final Environment environment;
 
   public LogAopConfiguration(Environment environment) {
@@ -25,7 +26,7 @@ public class LogAopConfiguration {
   }
 
   private String patternLog(JoinPoint joinPoint) {
-    return String.format("%s%s%s%s%s%s%s",joinPoint.getSignature().getName(),
+    return String.format("%s%s%s%s%s%s%s", joinPoint.getSignature().getName(),
         "() with params: ",
         Arrays.toString(joinPoint.getArgs()),
         " in class: ",
@@ -38,7 +39,6 @@ public class LogAopConfiguration {
       + "|| within(*vn.vela.*.entity..*) || within(*vn.vela.*.repository..*)")
   public void applicationpackagePointcut() {
   }
-
 
   @Before(value = "applicationpackagePointcut()")
   public void logBefore(JoinPoint joinPoint) {
@@ -59,14 +59,14 @@ public class LogAopConfiguration {
 
   @Around(value = "applicationpackagePointcut()")
   public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
-      log.debug(String.format("%s%s","Enter method: ",patternLog(joinPoint)));
+    log.info(String.format("%s%s", "Enter method: ", patternLog(joinPoint)));
     try {
       Object result = joinPoint.proceed();
-        log.debug(String.format("%s%s","Finish method : ",patternLog(joinPoint)));
+      log.info(String.format("%s%s", "Finish method : ", patternLog(joinPoint)));
       return result;
-    } catch (IllegalArgumentException e) {
-      log.error("Illegal argument: {} in {}.{}()", Arrays.toString(joinPoint.getArgs()),
-          joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName());
+    } catch (Exception e) {
+      log.error(String.format("%s%s%s%s","Exception in : ", patternLog(joinPoint), "exception = ",
+          Arrays.toString(e.getStackTrace())));
       throw e;
     }
   }
