@@ -16,6 +16,16 @@ import lombok.Setter;
 @Setter
 public class Users {
 
+
+  public Users() {
+  }
+
+  public Users(String firstName, String lastName, int age) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.age = age;
+  }
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
